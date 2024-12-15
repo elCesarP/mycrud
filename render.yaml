@@ -1,0 +1,11 @@
+name: mycrud
+runtime:
+  php: 8.2 # Especificar la versión de PHP que usas
+build:
+  commands:
+    - composer install --no-dev --optimize-autoloader
+    - php artisan config:cache
+    - php artisan route:cache
+    - php artisan migrate --force
+start:
+  command: "php artisan serve --host=0.0.0.0 --port=$PORT"
