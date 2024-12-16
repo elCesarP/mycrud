@@ -1,16 +1,46 @@
-services:
-   name: backend
-    type: web 
-    runtime: php 8.2
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan migrate --force
-    startCommand: |
-      php artisan serve --host 0.0.0.0 --port 10000
-    env:
-      DB_CONNECTION: pgsql
-      DB_HOST: dpg-ctfk9d52ng1s738ki870-a 
-      DB_PORT: 5432
-      DB_DATABASE: examen1_0
-      DB_USERNAME: examen1_0_user
-      DB_PASSWORD: repZYLN5V8dZDCSOnFbxR6JYi8RCOKeP
+name: Deploy Laravel Backend
+
+on:
+  push:
+    branches:
+      - main # Se ejecuta cuando subes cambios a la rama principal
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clonar el repositorio
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2. Configurar PHP
+      - name: Set Up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, bcmath, pdo_pgsql
+
+      # 3. Instalar dependencias con Composer
+      - name: Install Composer Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      # 4. Configurar variables de entorno desde GitHub Secrets
+      - name: Configure Environment File
+        run: |
+          echo "APP_ENV=production" >> .env
+          echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+          echo "DB_CONNECTION=pgsql" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+
+      # 5. Ejecutar migraciones
+      - name: Run Database Migrations
+        run: php artisan migrate --force
+
+      # 6. Desplegar la aplicación (esto depende del servidor final)
+      - name: Start Laravel Server
+        run: php artisan serve --host=0.0.0.0 --port=8000 &
